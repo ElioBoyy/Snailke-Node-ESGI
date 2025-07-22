@@ -8,6 +8,7 @@ export const api = axios.create({
   },
 })
 
+
 // Types
 export interface User {
   id: number

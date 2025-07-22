@@ -26,29 +26,17 @@
         <div class="date">Date</div>
       </div>
 
-      <div
+      <ScoreItem
         v-for="(scoreItem, index) in scores"
         :key="scoreItem.id"
-        class="score-item"
-        :class="{
-          'current-user': scoreItem.userId === authStore.user?.id,
-          'top-3': index < 3,
-          'new-score': recentScores.has(scoreItem.id),
-        }"
-      >
-        <div class="rank">
-          <span v-if="index === 0">🥇</span>
-          <span v-else-if="index === 1">🥈</span>
-          <span v-else-if="index === 2">🥉</span>
-          <span v-else>{{ index + 1 }}</span>
-        </div>
-        <div class="player">
-          {{ scoreItem.user?.username || 'Anonymous' }}
-          <span v-if="scoreItem.userId === authStore.user?.id" class="you-badge">You</span>
-        </div>
-        <div class="score">{{ scoreItem.score.toLocaleString() }}</div>
-        <div class="date">{{ formatDate(scoreItem.createdAt) }}</div>
-      </div>
+        :rank="index + 1"
+        :username="scoreItem.user?.username || 'Anonymous'"
+        :score="scoreItem.score"
+        :date="scoreItem.createdAt"
+        :is-current-user="scoreItem.userId === authStore.user?.id"
+        :is-top-3="index < 3"
+        :is-new-score="recentScores.has(scoreItem.id)"
+      />
     </div>
 
     <div v-else class="empty-state">
@@ -69,9 +57,11 @@ import { useWebSocketConnection } from '@/composables/useWebSocketConnection'
 import ConnectionStatus from './ConnectionStatus.vue'
 import RefreshButton from './RefreshButton.vue'
 import UserStats from './UserStats.vue'
+import ScoreItem from './ScoreItem.vue'
 
 const authStore = useAuthStore()
-const { isConnected, connectionRetries, lastScoreEvent, lastLeaderboardUpdate } = useWebSocketConnection()
+const { isConnected, connectionRetries, lastScoreEvent, lastLeaderboardUpdate } =
+  useWebSocketConnection()
 
 const recentScores = ref(new Set<number>())
 const isRefreshing = ref(false)
@@ -85,7 +75,7 @@ const {
   queryKey: ['leaderboard'],
   queryFn: scoresApi.getLeaderboard,
   refetchInterval: 120000,
-  staleTime: 60000
+  staleTime: 60000,
 })
 
 const { data: userScores, refetch: refetchUserScores } = useQuery({
@@ -99,7 +89,7 @@ const { data: userScores, refetch: refetchUserScores } = useQuery({
       return []
     }
   },
-  enabled: computed(() => !!authStore.user?.id),
+  enabled: false,
   refetchInterval: 120000,
   retry: false,
 })
@@ -128,23 +118,6 @@ async function refreshScores() {
   }
 }
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) {
-    return 'Today'
-  } else if (diffDays === 1) {
-    return 'Yesterday'
-  } else if (diffDays < 7) {
-    return `${diffDays} days ago`
-  } else {
-    return date.toLocaleDateString()
-  }
-}
-
 function handleWebSocketScoreUpdate() {
   if (lastScoreEvent.value) {
     recentScores.value.add(lastScoreEvent.value.score.id)
@@ -166,16 +139,16 @@ function handleLeaderboardUpdate() {
 async function showLiveScoreNotification(data: any) {
   const container = document.createElement('div')
   document.body.appendChild(container)
-  
+
   const { createApp } = await import('vue')
   const LiveScoreNotification = (await import('./LiveScoreNotification.vue')).default
-  
+
   const app = createApp(LiveScoreNotification, {
-    message: `${data.username} just scored ${data.score.toLocaleString()}!${data.isNewBest ? ' 🏆 New PB!' : ''}`
+    message: `${data.username} just scored ${data.score.toLocaleString()}!${data.isNewBest ? ' 🏆 New PB!' : ''}`,
   })
-  
+
   app.mount(container)
-  
+
   setTimeout(() => {
     app.unmount()
     if (document.body.contains(container)) {
@@ -196,8 +169,7 @@ onMounted(() => {
   }
 })
 
-onUnmounted(() => {
-})
+onUnmounted(() => {})
 </script>
 
 <style scoped>
@@ -378,85 +350,43 @@ onUnmounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-.score-item {
+.score-item.header {
   display: grid;
   grid-template-columns: 60px 1fr 100px 120px;
   gap: 1rem;
   padding: 1rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   align-items: center;
-  transition: all 0.3s ease;
-  color: white;
-}
-
-.score-item.header {
   background: linear-gradient(135deg, #4caf50, #45a049);
   color: white;
   font-weight: bold;
   font-size: 0.9rem;
   text-transform: uppercase;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.score-item:not(.header):hover {
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateX(4px);
-}
-
-.score-item.current-user {
-  background: linear-gradient(135deg, rgba(33, 150, 243, 0.2), rgba(33, 150, 243, 0.1));
-  border-left: 4px solid #2196f3;
-}
-
-.score-item.top-3:not(.header) {
-  background: linear-gradient(135deg, rgba(255, 193, 7, 0.2), rgba(255, 193, 7, 0.1));
-}
-
-.score-item.new-score {
-  animation: highlight 3s ease-out;
-}
-
-@keyframes highlight {
-  0% {
-    background-color: #4caf50;
-    color: white;
-  }
-  100% {
-    background-color: transparent;
-  }
-}
-
-.rank {
+.score-item.header .rank {
   text-align: center;
-  font-weight: bold;
-  font-size: 1.2rem;
 }
 
-.player {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.you-badge {
-  background-color: #2196f3;
-  color: white;
-  font-size: 0.75rem;
-  padding: 0.2rem 0.5rem;
-  border-radius: 10px;
-  font-weight: bold;
-}
-
-.score {
+.score-item.header .score {
   text-align: right;
-  font-weight: bold;
-  color: #4caf50;
-  font-size: 1.1rem;
 }
 
-.date {
+.score-item.header .date {
   text-align: right;
-  color: #666;
-  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .score-item.header {
+    grid-template-columns: 50px 1fr 80px;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    font-size: 0.8rem;
+  }
+
+  .score-item.header .date {
+    display: none;
+  }
 }
 
 .user-stats {
@@ -538,17 +468,6 @@ onUnmounted(() => {
 
   .header-controls {
     justify-content: center;
-  }
-
-  .score-item {
-    grid-template-columns: 50px 1fr 80px;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    font-size: 0.9rem;
-  }
-
-  .date {
-    display: none;
   }
 
   .user-stats-summary {

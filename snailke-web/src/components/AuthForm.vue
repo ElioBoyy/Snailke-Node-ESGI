@@ -164,10 +164,9 @@ const loginMutation = useMutation({
     error.value = ''
     success.value = `Welcome back, ${user.username}! 🎉`
     setTimeout(() => {
-      queryClient.invalidateQueries({ queryKey: ['userScores'] })
       resetForm()
       emit('success')
-    }, 1000)
+    }, 1500)
   },
   onError: (err: Error & { response?: { data?: { message?: string } } }) => {
     error.value = err.response?.data?.message || 'Invalid email or password. Please try again! 🔐'
@@ -181,22 +180,28 @@ const registerMutation = useMutation({
     return user
   },
   onSuccess: (user) => {
-    authStore.setUser(user)
     error.value = ''
-    success.value = `Account created! Welcome to Snailke, ${user.username}! 🌟`
+    success.value = `Account created successfully! Please login with your credentials. 🌟`
     setTimeout(() => {
-      setTimeout(() => queryClient.invalidateQueries({ queryKey: ['userScores'] }), 100)
-      setTimeout(() => queryClient.invalidateQueries({ queryKey: ['achievements'] }), 200)
-      setTimeout(() => queryClient.invalidateQueries({ queryKey: ['userAchievements'] }), 300)
       resetForm()
-      emit('success')
-    }, 1000)
+      mode.value = 'login'
+    }, 2000)
   },
-  onError: (err: Error & { response?: { data?: { message?: string } } }) => {
-    const message = err.response?.data?.message || 'Registration failed. Please try again! ✨'
-    error.value = message.includes('email')
-      ? 'This email is already taken! Try another one 📧'
-      : message
+  onError: (err: Error & { response?: { data?: { message?: string; errors?: any } } }) => {
+    if (err.response?.status === 422) {
+      const validationErrors = err.response.data?.errors
+      if (validationErrors && Array.isArray(validationErrors)) {
+        const firstError = validationErrors[0]
+        error.value = firstError?.message || 'Validation failed'
+      } else {
+        error.value = err.response.data?.message || 'Validation failed. Please check your input.'
+      }
+    } else {
+      const message = err.response?.data?.message || 'Registration failed. Please try again! ✨'
+      error.value = message.includes('email')
+        ? 'This email is already taken! Try another one 📧'
+        : message
+    }
     success.value = ''
   },
 })

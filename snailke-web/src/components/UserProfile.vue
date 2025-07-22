@@ -18,46 +18,23 @@
     <div v-if="authStore.user" class="profile-content">
       <!-- Quick stats -->
       <div v-if="userScores && userScores.length > 0" class="quick-stats">
-        <div class="stat-card">
-          <div class="stat-value">{{ userScores.length }}</div>
-          <div class="stat-label">Games Played</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ bestScore.toLocaleString() }}</div>
-          <div class="stat-label">Best Score</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ averageScore.toLocaleString() }}</div>
-          <div class="stat-label">Average Score</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ leaderboardRank }}</div>
-          <div class="stat-label">Leaderboard Rank</div>
-        </div>
+        <StatCard :value="userScores.length" label="Games Played" />
+        <StatCard :value="bestScore.toLocaleString()" label="Best Score" />
+        <StatCard :value="averageScore.toLocaleString()" label="Average Score" />
+        <StatCard :value="leaderboardRank" label="Leaderboard Rank" />
       </div>
 
       <!-- Recent activity -->
       <div v-if="userScores && userScores.length > 0" class="recent-activity">
         <h4>Recent Games</h4>
         <div class="activity-list">
-          <div 
-            v-for="score in recentGames" 
+          <ActivityItem
+            v-for="score in recentGames"
             :key="score.id"
-            class="activity-item"
-            :class="{ 'personal-best': score.score === bestScore }"
-          >
-            <div class="activity-icon">
-              <span v-if="score.score === bestScore">🏆</span>
-              <span v-else>🎮</span>
-            </div>
-            <div class="activity-details">
-              <div class="activity-score">{{ score.score.toLocaleString() }} points</div>
-              <div class="activity-date">{{ formatDate(score.createdAt) }}</div>
-            </div>
-            <div v-if="score.score === bestScore" class="best-badge">
-              Personal Best!
-            </div>
-          </div>
+            :score="score.score"
+            :date="score.createdAt"
+            :is-personal-best="score.score === bestScore"
+          />
         </div>
       </div>
 
@@ -80,6 +57,8 @@ import { computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
 import { authApi, scoresApi } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import StatCard from './StatCard.vue'
+import ActivityItem from './ActivityItem.vue'
 
 defineEmits<{
   startGame: []
@@ -117,7 +96,7 @@ const { data: userScores } = useQuery({
       return []
     }
   },
-  enabled: computed(() => !!authStore.user?.id),
+  enabled: false,
   retry: false,
 })
 
@@ -254,28 +233,6 @@ function formatDate(dateString: string): string {
   margin-bottom: 2rem;
 }
 
-.stat-card {
-  background-color: white;
-  padding: 1.5rem;
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #4CAF50;
-}
-
-.stat-value {
-  font-size: 2rem;
-  font-weight: bold;
-  color: #4CAF50;
-  margin-bottom: 0.5rem;
-}
-
-.stat-label {
-  color: #666;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
 
 .recent-activity {
   background-color: white;
@@ -297,52 +254,6 @@ function formatDate(dateString: string): string {
   gap: 1rem;
 }
 
-.activity-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  transition: background-color 0.3s;
-}
-
-.activity-item:hover {
-  background-color: #e9ecef;
-}
-
-.activity-item.personal-best {
-  background-color: #fff3e0;
-  border-left: 4px solid #ff9800;
-}
-
-.activity-icon {
-  font-size: 1.5rem;
-}
-
-.activity-details {
-  flex: 1;
-}
-
-.activity-score {
-  font-weight: bold;
-  color: #333;
-  font-size: 1.1rem;
-}
-
-.activity-date {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.best-badge {
-  background-color: #ff9800;
-  color: white;
-  font-size: 0.75rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 10px;
-  font-weight: bold;
-}
 
 
 .empty-profile {
