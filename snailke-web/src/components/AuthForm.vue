@@ -1,12 +1,7 @@
 <template>
   <div class="auth-container">
-    <!-- Animated Background -->
-    <div class="auth-background">
-      <div class="snail-trail"></div>
-      <div class="floating-leaves">
-        <div class="leaf" v-for="i in 6" :key="i">🍃</div>
-      </div>
-    </div>
+    <!-- Simple Background -->
+    <div class="auth-background"></div>
 
     <!-- Main Auth Card -->
     <div class="auth-card">
@@ -15,22 +10,20 @@
           <div class="snail-icon">🐌</div>
           <div class="logo-text">Snailke</div>
         </div>
-        <p class="auth-subtitle">{{ mode === 'login' ? 'Welcome back, snail racer!' : 'Join the slowest race ever!' }}</p>
+        <p class="auth-subtitle">
+          {{ mode === 'login' ? 'Welcome back, snail racer!' : 'Join the slowest race ever!' }}
+        </p>
       </div>
 
       <!-- Mode Switcher -->
       <div class="mode-switcher">
         <div class="switcher-track">
-          <button 
-            @click="mode = 'login'" 
-            :class="{ active: mode === 'login' }"
-            class="mode-btn"
-          >
+          <button @click="mode = 'login'" :class="{ active: mode === 'login' }" class="mode-btn">
             <span class="btn-icon">🔑</span>
             <span class="btn-text">Login</span>
           </button>
-          <button 
-            @click="mode = 'register'" 
+          <button
+            @click="mode = 'register'"
             :class="{ active: mode === 'register' }"
             class="mode-btn"
           >
@@ -44,81 +37,40 @@
       <!-- Form Container -->
       <form @submit.prevent="handleSubmit" class="auth-form">
         <div class="form-fields">
-          <!-- Username field for registration -->
-          <div v-if="mode === 'register'" class="input-group">
-            <div class="input-icon">👤</div>
-            <div class="input-wrapper">
-              <input 
-                id="username"
-                v-model="form.username" 
-                type="text" 
-                required 
-                placeholder=" "
-                :disabled="isLoading"
-                class="form-input"
-                minlength="3"
-                maxlength="50"
-              >
-              <label for="username" class="floating-label">Username</label>
-            </div>
-          </div>
+          <FloatingInput
+            v-if="mode === 'register'"
+            id="username"
+            v-model="form.username"
+            icon="👤"
+            label="Username"
+            type="text"
+            :disabled="isLoading"
+            :minlength="3"
+            :maxlength="50"
+          />
 
-          <!-- Email field -->
-          <div class="input-group">
-            <div class="input-icon">📧</div>
-            <div class="input-wrapper">
-              <input 
-                id="email"
-                v-model="form.email" 
-                type="email" 
-                required 
-                placeholder=" "
-                :disabled="isLoading"
-                class="form-input"
-              >
-              <label for="email" class="floating-label">Email Address</label>
-            </div>
-          </div>
-          
-          <!-- Password field -->
-          <div class="input-group">
-            <div class="input-icon">🔒</div>
-            <div class="input-wrapper">
-              <input 
-                id="password"
-                v-model="form.password" 
-                :type="showPassword ? 'text' : 'password'"
-                required 
-                placeholder=" "
-                :disabled="isLoading"
-                class="form-input"
-                :minlength="mode === 'register' ? 6 : undefined"
-              >
-              <label for="password" class="floating-label">Password</label>
-              <button 
-                type="button" 
-                @click="showPassword = !showPassword"
-                class="password-toggle"
-                :disabled="isLoading"
-              >
-                {{ showPassword ? '👁️' : '👁️‍🗨️' }}
-              </button>
-            </div>
-          </div>
+          <FloatingInput
+            id="email"
+            v-model="form.email"
+            icon="📧"
+            label="Email Address"
+            type="email"
+            :disabled="isLoading"
+          />
 
-          <!-- Password strength indicator for registration -->
-          <div v-if="mode === 'register' && form.password" class="password-strength">
-            <div class="strength-bar">
-              <div 
-                class="strength-fill" 
-                :class="passwordStrength.class"
-                :style="{ width: passwordStrength.width }"
-              ></div>
-            </div>
-            <span class="strength-text">{{ passwordStrength.text }}</span>
-          </div>
+          <FloatingInput
+            id="password"
+            v-model="form.password"
+            icon="🔒"
+            label="Password"
+            type="password"
+            :disabled="isLoading"
+            :minlength="mode === 'register' ? 6 : undefined"
+          />
+
+          <PasswordStrength v-if="mode === 'register'" :password="form.password" />
         </div>
-        
+
         <!-- Error Message -->
         <div v-if="error" class="error-banner">
           <span class="error-icon">⚠️</span>
@@ -130,10 +82,10 @@
           <span class="success-icon">✅</span>
           <span class="success-text">{{ success }}</span>
         </div>
-        
+
         <!-- Submit Button -->
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           :disabled="isLoading || !isFormValid"
           class="submit-button"
           :class="{ loading: isLoading }"
@@ -144,7 +96,9 @@
               {{ mode === 'login' ? '🚀' : '🌟' }}
             </span>
             <span class="btn-text">
-              {{ isLoading ? 'Please wait...' : (mode === 'login' ? 'Start Racing' : 'Join the Race') }}
+              {{
+                isLoading ? 'Please wait...' : mode === 'login' ? 'Start Racing' : 'Join the Race'
+              }}
             </span>
           </div>
         </button>
@@ -156,7 +110,8 @@
           </div>
           <div v-else class="terms-notice">
             <p class="terms-text">
-              By signing up, you agree to have the most fun playing the slowest snake game ever! 🐌✨
+              By signing up, you agree to have the most fun playing the slowest snake game ever!
+              🐌✨
             </p>
           </div>
         </div>
@@ -170,6 +125,8 @@ import { ref, computed } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
 import { authApi, type LoginData, type RegisterData } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import FloatingInput from './FloatingInput.vue'
+import PasswordStrength from './PasswordStrength.vue'
 
 const emit = defineEmits<{
   success: []
@@ -179,53 +136,23 @@ const authStore = useAuthStore()
 const queryClient = useQueryClient()
 
 const mode = ref<'login' | 'register'>('login')
-const showPassword = ref(false)
 const form = ref({
   username: '',
   email: '',
-  password: ''
+  password: '',
 })
 
 const error = ref('')
 const success = ref('')
 
-// Password strength validation
-const passwordStrength = computed(() => {
-  const password = form.value.password
-  if (!password) return { width: '0%', class: '', text: '' }
-  
-  let score = 0
-  const feedback = []
-  
-  if (password.length >= 6) score += 1
-  if (password.length >= 10) score += 1
-  if (/[A-Z]/.test(password)) score += 1
-  if (/[a-z]/.test(password)) score += 1
-  if (/[0-9]/.test(password)) score += 1
-  if (/[^A-Za-z0-9]/.test(password)) score += 1
-  
-  if (password.length < 6) feedback.push('At least 6 characters')
-  if (!/[A-Z]/.test(password)) feedback.push('uppercase letter')
-  if (!/[0-9]/.test(password)) feedback.push('number')
-  
-  const strengthLevels = [
-    { width: '20%', class: 'very-weak', text: 'Very Weak 😰' },
-    { width: '35%', class: 'weak', text: 'Weak 😕' },
-    { width: '50%', class: 'fair', text: 'Fair 😐' },
-    { width: '70%', class: 'good', text: 'Good 😊' },
-    { width: '85%', class: 'strong', text: 'Strong 💪' },
-    { width: '100%', class: 'very-strong', text: 'Very Strong 🚀' }
-  ]
-  
-  return strengthLevels[Math.min(score, 5)]
-})
-
 // Form validation
 const isFormValid = computed(() => {
   const emailValid = form.value.email && /\S+@\S+\.\S+/.test(form.value.email)
-  const passwordValid = form.value.password && form.value.password.length >= (mode.value === 'register' ? 6 : 1)
-  const usernameValid = mode.value === 'login' || (form.value.username && form.value.username.length >= 3)
-  
+  const passwordValid =
+    form.value.password && form.value.password.length >= (mode.value === 'register' ? 6 : 1)
+  const usernameValid =
+    mode.value === 'login' || (form.value.username && form.value.username.length >= 3)
+
   return emailValid && passwordValid && usernameValid
 })
 
@@ -234,60 +161,65 @@ const loginMutation = useMutation({
   mutationFn: (data: LoginData) => authApi.login(data),
   onSuccess: (user) => {
     authStore.setUser(user)
-    queryClient.invalidateQueries({ queryKey: ['userScores'] })
     error.value = ''
     success.value = `Welcome back, ${user.username}! 🎉`
     setTimeout(() => {
+      queryClient.invalidateQueries({ queryKey: ['userScores'] })
       resetForm()
       emit('success')
-    }, 1500)
+    }, 1000)
   },
   onError: (err: Error & { response?: { data?: { message?: string } } }) => {
     error.value = err.response?.data?.message || 'Invalid email or password. Please try again! 🔐'
     success.value = ''
-  }
+  },
 })
 
 const registerMutation = useMutation({
-  mutationFn: (data: RegisterData) => authApi.register(data),
+  mutationFn: async (data: RegisterData) => {
+    const user = await authApi.register(data)
+    return user
+  },
   onSuccess: (user) => {
     authStore.setUser(user)
-    queryClient.invalidateQueries({ queryKey: ['userScores'] })
     error.value = ''
     success.value = `Account created! Welcome to Snailke, ${user.username}! 🌟`
     setTimeout(() => {
+      setTimeout(() => queryClient.invalidateQueries({ queryKey: ['userScores'] }), 100)
+      setTimeout(() => queryClient.invalidateQueries({ queryKey: ['achievements'] }), 200)
+      setTimeout(() => queryClient.invalidateQueries({ queryKey: ['userAchievements'] }), 300)
       resetForm()
       emit('success')
-    }, 2000)
+    }, 1000)
   },
   onError: (err: Error & { response?: { data?: { message?: string } } }) => {
     const message = err.response?.data?.message || 'Registration failed. Please try again! ✨'
-    error.value = message.includes('email') ? 'This email is already taken! Try another one 📧' : message
+    error.value = message.includes('email')
+      ? 'This email is already taken! Try another one 📧'
+      : message
     success.value = ''
-  }
+  },
 })
 
-const isLoading = computed(() => 
-  loginMutation.isPending.value || registerMutation.isPending.value
-)
+const isLoading = computed(() => loginMutation.isPending.value || registerMutation.isPending.value)
 
 // Functions
 function handleSubmit() {
   if (!isFormValid.value) return
-  
+
   error.value = ''
   success.value = ''
-  
+
   if (mode.value === 'login') {
     loginMutation.mutate({
       email: form.value.email,
-      password: form.value.password
+      password: form.value.password,
     })
   } else {
     registerMutation.mutate({
       username: form.value.username,
       email: form.value.email,
-      password: form.value.password
+      password: form.value.password,
     })
   }
 }
@@ -296,9 +228,8 @@ function resetForm() {
   form.value = {
     username: '',
     email: '',
-    password: ''
+    password: '',
   }
-  showPassword.value = false
   error.value = ''
   success.value = ''
 }
@@ -316,70 +247,20 @@ function resetForm() {
   overflow: hidden;
 }
 
-/* Animated Background */
+/* Simple Background */
 .auth-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  opacity: 0.1;
-}
-
-.snail-trail {
-  position: absolute;
-  top: 20%;
-  left: -10%;
-  width: 120%;
-  height: 200px;
-  background: linear-gradient(45deg, transparent 48%, rgba(76, 175, 80, 0.1) 50%, transparent 52%);
-  animation: slideTrail 20s linear infinite;
-}
-
-.floating-leaves {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
-.leaf {
-  position: absolute;
-  font-size: 2rem;
-  animation: float 15s infinite ease-in-out;
-  opacity: 0.7;
-}
-
-.leaf:nth-child(1) { left: 10%; animation-delay: 0s; }
-.leaf:nth-child(2) { left: 20%; animation-delay: 2s; }
-.leaf:nth-child(3) { left: 30%; animation-delay: 4s; }
-.leaf:nth-child(4) { left: 70%; animation-delay: 6s; }
-.leaf:nth-child(5) { left: 80%; animation-delay: 8s; }
-.leaf:nth-child(6) { left: 90%; animation-delay: 10s; }
-
-@keyframes slideTrail {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(100vh) rotate(0deg); }
-  50% { transform: translateY(-20px) rotate(180deg); }
+  display: none;
 }
 
 /* Main Auth Card */
 .auth-card {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
+  background: white;
   border-radius: 24px;
   padding: 3rem;
   width: 100%;
   max-width: 480px;
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.1),
-    0 0 0 1px rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
   position: relative;
   animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -417,7 +298,7 @@ function resetForm() {
 .logo-text {
   font-size: 2.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, #4CAF50, #2196F3);
+  background: linear-gradient(135deg, #4caf50, #2196f3);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -431,9 +312,19 @@ function resetForm() {
 }
 
 @keyframes bounce {
-  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-10px); }
-  60% { transform: translateY(-5px); }
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
 }
 
 /* Mode Switcher */
@@ -482,7 +373,7 @@ function resetForm() {
   left: 4px;
   width: calc(50% - 4px);
   height: calc(100% - 8px);
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #4caf50, #45a049);
   border-radius: 46px;
   transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
@@ -490,8 +381,8 @@ function resetForm() {
 
 .switcher-indicator.move-right {
   transform: translateX(100%);
-  background: linear-gradient(135deg, #2196F3, #1976D2);
-  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  background: linear-gradient(135deg, #4caf50, #45a049);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
 /* Form Styles */
@@ -519,7 +410,7 @@ function resetForm() {
 
 .input-group:focus-within {
   background: white;
-  border-color: #4CAF50;
+  border-color: #4caf50;
   box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
 }
 
@@ -534,7 +425,7 @@ function resetForm() {
 }
 
 .input-group:focus-within .input-icon {
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .input-wrapper {
@@ -576,7 +467,7 @@ function resetForm() {
 .form-input:not(:placeholder-shown) + .floating-label {
   top: 16px;
   font-size: 0.75rem;
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: 600;
 }
 
@@ -616,12 +507,24 @@ function resetForm() {
   transition: all 0.3s ease;
 }
 
-.strength-fill.very-weak { background: #f44336; }
-.strength-fill.weak { background: #ff9800; }
-.strength-fill.fair { background: #ffeb3b; }
-.strength-fill.good { background: #8bc34a; }
-.strength-fill.strong { background: #4caf50; }
-.strength-fill.very-strong { background: #2196f3; }
+.strength-fill.very-weak {
+  background: #f44336;
+}
+.strength-fill.weak {
+  background: #ff9800;
+}
+.strength-fill.fair {
+  background: #ffeb3b;
+}
+.strength-fill.good {
+  background: #8bc34a;
+}
+.strength-fill.strong {
+  background: #4caf50;
+}
+.strength-fill.very-strong {
+  background: #2196f3;
+}
 
 .strength-text {
   font-size: 0.8rem;
@@ -629,7 +532,8 @@ function resetForm() {
 }
 
 /* Messages */
-.error-banner, .success-banner {
+.error-banner,
+.success-banner {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -652,7 +556,8 @@ function resetForm() {
   border: 1px solid rgba(46, 125, 50, 0.2);
 }
 
-.error-icon, .success-icon {
+.error-icon,
+.success-icon {
   font-size: 1.2rem;
 }
 
@@ -673,7 +578,7 @@ function resetForm() {
   height: 60px;
   border: none;
   border-radius: 16px;
-  background: linear-gradient(135deg, #4CAF50, #45a049);
+  background: linear-gradient(135deg, #4caf50, #45a049);
   color: white;
   font-size: 1.1rem;
   font-weight: 600;
@@ -718,7 +623,9 @@ function resetForm() {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-icon {
@@ -731,7 +638,7 @@ function resetForm() {
 }
 
 .link {
-  color: #4CAF50;
+  color: #4caf50;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.3s ease;
@@ -754,35 +661,35 @@ function resetForm() {
   .auth-container {
     padding: 1rem;
   }
-  
+
   .auth-card {
     padding: 2rem;
     border-radius: 20px;
   }
-  
+
   .logo-text {
     font-size: 2rem;
   }
-  
+
   .snail-icon {
     font-size: 2.5rem;
   }
-  
+
   .form-input {
     height: 56px;
     padding: 18px 12px 6px;
   }
-  
+
   .floating-label {
     left: 12px;
   }
-  
+
   .form-input:focus + .floating-label,
   .form-input:not(:placeholder-shown) + .floating-label {
     left: 12px;
     top: 14px;
   }
-  
+
   .submit-button {
     height: 56px;
   }
@@ -792,16 +699,16 @@ function resetForm() {
   .auth-card {
     padding: 1.5rem;
   }
-  
+
   .logo-animation {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .mode-btn {
     padding: 0.75rem;
   }
-  
+
   .btn-text {
     display: none;
   }

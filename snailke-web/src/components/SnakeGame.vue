@@ -1,46 +1,14 @@
 <template>
   <div class="snake-game">
-    <div v-if="!authStore.isAuthenticated" class="auth-required">
-      <div class="auth-message">
-        <div class="auth-icon">🔐</div>
-        <h2>Connexion Requise</h2>
-        <p>Vous devez être connecté pour jouer à Snailke !</p>
-        <p class="auth-description">
-          Créez un compte pour sauvegarder vos scores, débloquer des succès et concourir dans le
-          classement global.
-        </p>
-        <button @click="$emit('show-auth')" class="auth-btn-large">
-          <span class="btn-icon">🚀</span>
-          <span>Se Connecter / S'inscrire</span>
-        </button>
-      </div>
-    </div>
+    <AuthRequired v-if="!authStore.isAuthenticated" @show-auth="$emit('show-auth')" />
 
     <div v-else class="game-content">
       <div class="game-header">
-        <div class="game-stats">
-          <div class="stat-card current-score">
-            <div class="stat-icon">🎯</div>
-            <div class="stat-info">
-              <div class="stat-label">Score</div>
-              <div class="stat-value">{{ currentScore.toLocaleString() }}</div>
-            </div>
-          </div>
-          <div class="stat-card high-score">
-            <div class="stat-icon">👑</div>
-            <div class="stat-info">
-              <div class="stat-label">Best</div>
-              <div class="stat-value">{{ bestScore.toLocaleString() }}</div>
-            </div>
-          </div>
-          <div class="stat-card speed-indicator">
-            <div class="stat-icon">⚡</div>
-            <div class="stat-info">
-              <div class="stat-label">Speed</div>
-              <div class="stat-value">{{ gameSpeed }}/10</div>
-            </div>
-          </div>
-        </div>
+        <GameStats 
+          :current-score="currentScore" 
+          :best-score="bestScore" 
+          :game-speed="gameSpeed" 
+        />
       </div>
 
       <div class="game-container">
@@ -53,96 +21,54 @@
           @click="focusGameCanvas"
         ></canvas>
 
-        <div v-if="gameState === 'menu'" class="game-overlay">
-          <div class="menu-card">
-            <div class="menu-icon">🐌</div>
-            <h3>Welcome to Snailke!</h3>
-            <p class="menu-description">
-              Guide your snail through the garden and collect delicious lettuce!
-            </p>
-            <div class="controls-info">
-              <h4>🎮 Controls</h4>
-              <div class="control-grid">
-                <div class="control-item">⬆️ Up Arrow</div>
-                <div class="control-item">⬇️ Down Arrow</div>
-                <div class="control-item">⬅️ Left Arrow</div>
-                <div class="control-item">➡️ Right Arrow</div>
-                <div class="control-item">⏸️ Space (Pause)</div>
-              </div>
-            </div>
-            <button @click="startNewGame" class="action-btn primary">
-              <span class="btn-icon">🚀</span>
-              <span>Start Adventure</span>
-            </button>
-          </div>
-        </div>
+        <GameOverlay
+          v-if="gameState === 'menu'"
+          type="menu"
+          icon="🐌"
+          title="Welcome to Snailke!"
+          description="Guide your snail through the garden and collect delicious lettuce!"
+          :buttons="[{ label: 'Start Adventure', icon: '🚀', action: 'startGame', variant: 'primary' }]"
+          @start-game="startNewGame"
+        />
 
-        <div v-if="gameState === 'paused'" class="game-overlay">
-          <div class="menu-card">
-            <div class="menu-icon">⏸️</div>
-            <h3>Game Paused</h3>
-            <p class="menu-description">Take a breath, snail racer!</p>
-            <div class="button-group">
-              <button @click="resumeCurrentGame" class="action-btn primary">
-                <span class="btn-icon">▶️</span>
-                <span>Resume</span>
-              </button>
-              <button @click="resetToMainMenu" class="action-btn secondary">
-                <span class="btn-icon">🔄</span>
-                <span>Restart</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <GameOverlay
+          v-if="gameState === 'paused'"
+          type="paused"
+          icon="⏸️"
+          title="Game Paused"
+          description="Take a breath, snail racer!"
+          :buttons="[
+            { label: 'Resume', icon: '▶️', action: 'resumeGame', variant: 'primary' },
+            { label: 'Restart', icon: '🔄', action: 'resetGame', variant: 'secondary' }
+          ]"
+          @resume-game="resumeCurrentGame"
+          @reset-game="resetToMainMenu"
+        />
 
-        <div v-if="gameState === 'gameOver'" class="game-overlay">
-          <div class="menu-card game-over">
-            <div class="menu-icon">💫</div>
-            <h3>{{ currentScore > bestScore ? 'New Record!' : 'Game Over!' }}</h3>
-            <div class="final-score">
-              <div class="score-display">{{ currentScore.toLocaleString() }}</div>
-              <div class="score-label">Final Score</div>
-            </div>
-            <div v-if="currentScore > bestScore" class="celebration">
-              <p>🎉 Congratulations! You set a new personal best! 🎉</p>
-            </div>
-            <div
-              v-if="authStore.isAuthenticated && scoreSubmission.isPending.value"
-              class="submitting"
-            >
-              <div class="loading-spinner"></div>
-              <p>Submitting your score...</p>
-            </div>
-            <div class="button-group">
-              <button @click="startNewGame" class="action-btn primary">
-                <span class="btn-icon">🎮</span>
-                <span>Play Again</span>
-              </button>
-              <button @click="resetToMainMenu" class="action-btn secondary">
-                <span class="btn-icon">🏠</span>
-                <span>Main Menu</span>
-              </button>
-            </div>
-          </div>
-        </div>
+        <GameOverlay
+          v-if="gameState === 'gameOver'"
+          type="gameOver"
+          icon="💫"
+          :title="currentScore > bestScore ? 'New Record!' : 'Game Over!'"
+          :final-score="currentScore"
+          :show-celebration="currentScore > bestScore"
+          :is-loading="authStore.isAuthenticated && scoreSubmission.isPending.value"
+          :buttons="[
+            { label: 'Play Again', icon: '🎮', action: 'startGame', variant: 'primary' },
+            { label: 'Main Menu', icon: '🏠', action: 'resetGame', variant: 'secondary' }
+          ]"
+          @start-game="startNewGame"
+          @reset-game="resetToMainMenu"
+        />
       </div>
 
-      <div class="game-controls">
-        <button @click="pauseCurrentGame" :disabled="gameState !== 'playing'">⏸️ Pause</button>
-        <button @click="resetToMainMenu">🔄 Reset</button>
-        <div class="speed-control">
-          <label>Speed: </label>
-          <input
-            type="range"
-            v-model="gameSpeed"
-            min="1"
-            max="10"
-            @change="adjustGameSpeed"
-            :disabled="gameState === 'playing'"
-          />
-          <span>{{ gameSpeed }}</span>
-        </div>
-      </div>
+      <GameControls
+        :game-state="gameState"
+        :game-speed="gameSpeed"
+        @pause="pauseCurrentGame"
+        @reset="resetToMainMenu"
+        @speed-change="handleSpeedChange"
+      />
     </div>
   </div>
 </template>
@@ -152,6 +78,10 @@ import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
 import { scoresApi } from '@/services/api'
 import { useAuthStore } from '@/stores/auth'
+import AuthRequired from './AuthRequired.vue'
+import GameStats from './GameStats.vue'
+import GameOverlay from './GameOverlay.vue'
+import GameControls from './GameControls.vue'
 
 const authStore = useAuthStore()
 
@@ -287,6 +217,11 @@ function adjustGameSpeed() {
     stopGameLoop()
     beginGameLoop()
   }
+}
+
+function handleSpeedChange(value: string) {
+  gameSpeed.value = parseInt(value)
+  adjustGameSpeed()
 }
 
 function updateGameState() {

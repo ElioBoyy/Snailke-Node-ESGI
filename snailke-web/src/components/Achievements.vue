@@ -137,8 +137,17 @@ const {
   refetch: refetchUser
 } = useQuery({
   queryKey: ['userAchievements', authStore.user?.id],
-  queryFn: achievementsApi.getUserAchievements,
-  enabled: computed(() => !!authStore.user),
+  queryFn: async () => {
+    if (!authStore.user?.id) return []
+    try {
+      return await achievementsApi.getUserAchievements()
+    } catch (error) {
+      console.error('Failed to fetch user achievements:', error)
+      return []
+    }
+  },
+  enabled: computed(() => !!authStore.user?.id),
+  retry: false,
 })
 
 // Computed properties

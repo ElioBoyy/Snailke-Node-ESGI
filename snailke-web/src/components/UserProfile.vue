@@ -108,8 +108,17 @@ const isLoggingOut = computed(() => logoutMutation.isPending.value)
 // User scores query
 const { data: userScores } = useQuery({
   queryKey: ['userScores', authStore.user?.id],
-  queryFn: () => authStore.user ? scoresApi.getUserScores(authStore.user.id) : Promise.resolve([]),
-  enabled: computed(() => !!authStore.user),
+  queryFn: async () => {
+    if (!authStore.user?.id) return []
+    try {
+      return await scoresApi.getUserScores(authStore.user.id)
+    } catch (error) {
+      console.error('Failed to fetch user scores:', error)
+      return []
+    }
+  },
+  enabled: computed(() => !!authStore.user?.id),
+  retry: false,
 })
 
 // Leaderboard for ranking

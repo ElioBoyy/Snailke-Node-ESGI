@@ -1,7 +1,9 @@
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, createApp } from 'vue'
 import { useQueryClient } from '@tanstack/vue-query'
 import { Transmit } from '@adonisjs/transmit-client'
 import { useAuthStore } from '@/stores/auth'
+import ScoreNotification from '@/components/ScoreNotification.vue'
+import LiveScoreNotification from '@/components/LiveScoreNotification.vue'
 
 export interface ScoreEvent {
   score: {
@@ -109,8 +111,8 @@ export function useWebSocketConnection() {
         achievementChannel.onMessage((data: any) => {
           displayAchievementNotification(data)
 
-          queryClient.invalidateQueries({ queryKey: ['achievements'] })
-          queryClient.invalidateQueries({ queryKey: ['userAchievements'] })
+          setTimeout(() => queryClient.invalidateQueries({ queryKey: ['achievements'] }), 100)
+          setTimeout(() => queryClient.invalidateQueries({ queryKey: ['userAchievements'] }), 200)
         })
       }
 
@@ -155,160 +157,67 @@ export function useWebSocketConnection() {
   }
 
   function displayScoreNotification(data: ScoreEvent) {
-    const notification = document.createElement('div')
-    notification.className = 'ws-notification score-notification'
-    notification.innerHTML = `
-      <div class="notification-content">
-        <span class="notification-icon">🎯</span>
-        <span class="notification-text">${data.announcement}</span>
-      </div>
-    `
-
-    Object.assign(notification.style, {
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      background: 'linear-gradient(135deg, #4CAF50, #45a049)',
-      color: 'white',
-      padding: '1rem 1.5rem',
-      borderRadius: '12px',
-      boxShadow: '0 4px 16px rgba(76, 175, 80, 0.3)',
-      zIndex: '10000',
-      animation: 'slideInRight 0.3s ease, fadeOut 0.3s ease 2.7s',
-      fontSize: '0.9rem',
-      fontWeight: '600',
-      maxWidth: '300px',
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    
+    const app = createApp(ScoreNotification, {
+      type: 'score',
+      icon: '🎯',
+      message: data.announcement
     })
-
-    document.body.appendChild(notification)
-
+    
+    app.mount(container)
+    
     setTimeout(() => {
-      if (document.body.contains(notification)) {
-        document.body.removeChild(notification)
+      app.unmount()
+      if (document.body.contains(container)) {
+        document.body.removeChild(container)
       }
-    }, 3000)
+    }, 3500)
   }
 
   function displayPersonalBestNotification(data: PersonalBestEvent) {
-    const notification = document.createElement('div')
-    notification.className = 'ws-notification personal-best-notification'
-    notification.innerHTML = `
-      <div class="notification-content">
-        <span class="notification-icon">🏆</span>
-        <span class="notification-text">
-          New personal best: ${data.score.toLocaleString()} points!
-        </span>
-      </div>
-    `
-
-    Object.assign(notification.style, {
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      background: 'linear-gradient(135deg, #ff9800, #f57c00)',
-      color: 'white',
-      padding: '1rem 1.5rem',
-      borderRadius: '12px',
-      boxShadow: '0 4px 16px rgba(255, 152, 0, 0.4)',
-      zIndex: '10001',
-      animation: 'slideInRight 0.3s ease, fadeOut 0.3s ease 3.7s',
-      fontSize: '0.9rem',
-      fontWeight: '600',
-      maxWidth: '300px',
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    
+    const app = createApp(ScoreNotification, {
+      type: 'personal-best',
+      icon: '🏆',
+      message: `New personal best: ${data.score.toLocaleString()} points!`
     })
-
-    document.body.appendChild(notification)
-
+    
+    app.mount(container)
+    
     setTimeout(() => {
-      if (document.body.contains(notification)) {
-        document.body.removeChild(notification)
+      app.unmount()
+      if (document.body.contains(container)) {
+        document.body.removeChild(container)
       }
-    }, 4000)
+    }, 4500)
   }
 
   function displayAchievementNotification(data: any) {
-    const notification = document.createElement('div')
-    notification.className = 'ws-notification achievement-notification'
-    notification.innerHTML = `
-      <div class="notification-content">
-        <span class="notification-icon">🏅</span>
-        <span class="notification-text">
-          Achievement unlocked: ${data.achievement.name}!
-        </span>
-      </div>
-    `
-
-    Object.assign(notification.style, {
-      position: 'fixed',
-      top: '20px',
-      right: '20px',
-      background: 'linear-gradient(135deg, #9c27b0, #673ab7)',
-      color: 'white',
-      padding: '1rem 1.5rem',
-      borderRadius: '12px',
-      boxShadow: '0 4px 16px rgba(156, 39, 176, 0.4)',
-      zIndex: '10002',
-      animation: 'slideInRight 0.3s ease, fadeOut 0.3s ease 4.7s',
-      fontSize: '0.9rem',
-      fontWeight: '600',
-      maxWidth: '300px',
+    const container = document.createElement('div')
+    document.body.appendChild(container)
+    
+    const app = createApp(ScoreNotification, {
+      type: 'achievement',
+      icon: '🏅',
+      message: `Achievement unlocked: ${data.achievement.name}!`
     })
-
-    document.body.appendChild(notification)
-
+    
+    app.mount(container)
+    
     setTimeout(() => {
-      if (document.body.contains(notification)) {
-        document.body.removeChild(notification)
+      app.unmount()
+      if (document.body.contains(container)) {
+        document.body.removeChild(container)
       }
-    }, 5000)
+    }, 5500)
   }
 
-  function setupNotificationStyles() {
-    if (document.getElementById('ws-notification-styles')) return
-
-    const style = document.createElement('style')
-    style.id = 'ws-notification-styles'
-    style.textContent = `
-      @keyframes slideInRight {
-        from {
-          transform: translateX(100%);
-          opacity: 0;
-        }
-        to {
-          transform: translateX(0);
-          opacity: 1;
-        }
-      }
-      
-      @keyframes fadeOut {
-        from {
-          opacity: 1;
-        }
-        to {
-          opacity: 0;
-        }
-      }
-      
-      .ws-notification {
-        font-family: 'Arial', sans-serif;
-      }
-      
-      .notification-content {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-      }
-      
-      .notification-icon {
-        font-size: 1.2rem;
-      }
-    `
-    document.head.appendChild(style)
-  }
 
   onMounted(() => {
-    setupNotificationStyles()
-
     establishConnection()
   })
 

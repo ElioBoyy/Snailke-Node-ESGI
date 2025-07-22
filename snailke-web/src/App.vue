@@ -159,6 +159,7 @@ function handleStartGame() {
         <div v-show="currentView === 'profile'" class="view-container">
           <UserProfile v-if="authStore.isAuthenticated" @start-game="handleStartGame" />
         </div>
+        
       </div>
     </main>
 
@@ -518,7 +519,7 @@ function handleStartGame() {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: transparent;
   backdrop-filter: blur(12px);
   z-index: 1000;
   display: flex;
