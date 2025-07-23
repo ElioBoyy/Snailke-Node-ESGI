@@ -58,7 +58,7 @@ function initializeNewGame() {
 
 function placeFoodOnBoard() {
   let attempts = 0
-  const MAX_PLACEMENT_ATTEMPTS = 100
+  const MAX_PLACEMENT_ATTEMPTS = 30 * 30 - 1 // 30x30 grid - 1 pour le nombre de cases que peut prendre 
 
   do {
     foodPosition.value = {
