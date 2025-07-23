@@ -1,3 +1,29 @@
+<script setup lang="ts">
+interface Button {
+  label: string
+  icon: string
+  action: string
+  variant: 'primary' | 'secondary'
+}
+
+defineProps<{
+  type: 'menu' | 'paused' | 'gameOver'
+  icon: string
+  title: string
+  description?: string
+  finalScore?: number
+  showCelebration?: boolean
+  isLoading?: boolean
+  buttons: Button[]
+}>()
+
+defineEmits<{
+  startGame: []
+  resumeGame: []
+  resetGame: []
+}>()
+</script>
+
 <template>
   <div class="game-overlay">
     <div class="menu-card" :class="{ 'game-over': type === 'gameOver' }">
@@ -45,32 +71,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-interface Button {
-  label: string
-  icon: string
-  action: string
-  variant: 'primary' | 'secondary'
-}
-
-defineProps<{
-  type: 'menu' | 'paused' | 'gameOver'
-  icon: string
-  title: string
-  description?: string
-  finalScore?: number
-  showCelebration?: boolean
-  isLoading?: boolean
-  buttons: Button[]
-}>()
-
-defineEmits<{
-  startGame: []
-  resumeGame: []
-  resetGame: []
-}>()
-</script>
 
 <style scoped>
 .game-overlay {

@@ -1,20 +1,17 @@
-<template>
-  <div
-    class="connection-indicator"
-    :class="{ connected: isConnected, disconnected: !isConnected }"
-  >
-    <div class="status-light"></div>
-    <span v-if="isConnected">Live Updates</span>
-    <span v-else>Reconnecting... ({{ connectionRetries }})</span>
-  </div>
-</template>
-
 <script setup lang="ts">
 defineProps<{
   isConnected: boolean
   connectionRetries: number
 }>()
 </script>
+
+<template>
+  <div class="connection-indicator" :class="{ connected: isConnected, disconnected: !isConnected }">
+    <div class="status-light"></div>
+    <span v-if="isConnected">Live Updates</span>
+    <span v-else>Reconnecting... ({{ connectionRetries }})</span>
+  </div>
+</template>
 
 <style scoped>
 .connection-indicator {
@@ -59,7 +56,12 @@ defineProps<{
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
 }
 </style>

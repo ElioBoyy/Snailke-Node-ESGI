@@ -1,3 +1,11 @@
+<script setup lang="ts">
+defineProps<{
+  currentScore: number
+  bestScore: number
+  gameSpeed: number
+}>()
+</script>
+
 <template>
   <div class="game-stats">
     <div class="stat-card current-score">
@@ -23,14 +31,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  currentScore: number
-  bestScore: number
-  gameSpeed: number
-}>()
-</script>
 
 <style scoped>
 .game-stats {

@@ -1,70 +1,3 @@
-<template>
-  <div class="user-profile">
-    <div class="profile-header">
-      <div class="user-info">
-        <div class="avatar">🐌</div>
-        <div class="user-details">
-          <h3>{{ authStore.user?.email }}</h3>
-          <p class="join-date">Joined {{ formatDate(authStore.user?.createdAt || '') }}</p>
-        </div>
-      </div>
-      <button @click="handleLogout" :disabled="isLoggingOut" class="logout-btn">
-        {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
-      </button>
-    </div>
-
-    <div v-if="authStore.user" class="profile-content">
-      <div v-if="userScores && userScores.length > 0" class="quick-stats">
-        <div class="stat-card">
-          <div class="stat-value">{{ userScores.length }}</div>
-          <div class="stat-label">Games Played</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ bestScore.toLocaleString() }}</div>
-          <div class="stat-label">Best Score</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ averageScore.toLocaleString() }}</div>
-          <div class="stat-label">Average Score</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-value">{{ leaderboardRank }}</div>
-          <div class="stat-label">Leaderboard Rank</div>
-        </div>
-      </div>
-
-      <div v-if="userScores && userScores.length > 0" class="recent-activity">
-        <h4>Recent Games</h4>
-        <div class="activity-list">
-          <div
-            v-for="score in recentGames"
-            :key="score.id"
-            class="activity-item"
-            :class="{ 'personal-best': score.score === bestScore }"
-          >
-            <div class="activity-icon">
-              <span v-if="score.score === bestScore">🏆</span>
-              <span v-else>🎮</span>
-            </div>
-            <div class="activity-details">
-              <div class="activity-score">{{ score.score.toLocaleString() }} points</div>
-              <div class="activity-date">{{ formatDate(score.createdAt) }}</div>
-            </div>
-            <div v-if="score.score === bestScore" class="best-badge">Personal Best!</div>
-          </div>
-        </div>
-      </div>
-
-      <div v-if="!userScores || userScores.length === 0" class="empty-profile">
-        <div class="empty-icon">🐌</div>
-        <h3>Welcome to Snailke!</h3>
-        <p>Start playing to see your stats and achievements here.</p>
-        <button @click="$emit('startGame')" class="start-playing-btn">Start Playing</button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
@@ -154,6 +87,73 @@ function formatDate(dateString: string): string {
   }
 }
 </script>
+
+<template>
+  <div class="user-profile">
+    <div class="profile-header">
+      <div class="user-info">
+        <div class="avatar">🐌</div>
+        <div class="user-details">
+          <h3>{{ authStore.user?.email }}</h3>
+          <p class="join-date">Joined {{ formatDate(authStore.user?.createdAt || '') }}</p>
+        </div>
+      </div>
+      <button @click="handleLogout" :disabled="isLoggingOut" class="logout-btn">
+        {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
+      </button>
+    </div>
+
+    <div v-if="authStore.user" class="profile-content">
+      <div v-if="userScores && userScores.length > 0" class="quick-stats">
+        <div class="stat-card">
+          <div class="stat-value">{{ userScores.length }}</div>
+          <div class="stat-label">Games Played</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ bestScore.toLocaleString() }}</div>
+          <div class="stat-label">Best Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ averageScore.toLocaleString() }}</div>
+          <div class="stat-label">Average Score</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value">{{ leaderboardRank }}</div>
+          <div class="stat-label">Leaderboard Rank</div>
+        </div>
+      </div>
+
+      <div v-if="userScores && userScores.length > 0" class="recent-activity">
+        <h4>Recent Games</h4>
+        <div class="activity-list">
+          <div
+            v-for="score in recentGames"
+            :key="score.id"
+            class="activity-item"
+            :class="{ 'personal-best': score.score === bestScore }"
+          >
+            <div class="activity-icon">
+              <span v-if="score.score === bestScore">🏆</span>
+              <span v-else>🎮</span>
+            </div>
+            <div class="activity-details">
+              <div class="activity-score">{{ score.score.toLocaleString() }} points</div>
+              <div class="activity-date">{{ formatDate(score.createdAt) }}</div>
+            </div>
+            <div v-if="score.score === bestScore" class="best-badge">Personal Best!</div>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="!userScores || userScores.length === 0" class="empty-profile">
+        <div class="empty-icon">🐌</div>
+        <h3>Welcome to Snailke!</h3>
+        <p>Start playing to see your stats and achievements here.</p>
+        <button @click="$emit('startGame')" class="start-playing-btn">Start Playing</button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .user-profile {

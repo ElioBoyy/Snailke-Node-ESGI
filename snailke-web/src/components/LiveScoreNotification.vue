@@ -1,18 +1,3 @@
-<template>
-  <Teleport to="body">
-    <div 
-      v-if="visible" 
-      class="live-score-notification"
-      @animationend="handleAnimationEnd"
-    >
-      <div class="live-notification-content">
-        <span class="live-icon">⚡</span>
-        <span class="live-text">{{ message }}</span>
-      </div>
-    </div>
-  </Teleport>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 
@@ -35,12 +20,23 @@ function handleAnimationEnd(event: AnimationEvent) {
 }
 </script>
 
+<template>
+  <Teleport to="body">
+    <div v-if="visible" class="live-score-notification" @animationend="handleAnimationEnd">
+      <div class="live-notification-content">
+        <span class="live-icon">⚡</span>
+        <span class="live-text">{{ message }}</span>
+      </div>
+    </div>
+  </Teleport>
+</template>
+
 <style scoped>
 .live-score-notification {
   position: fixed;
   top: 80px;
   right: 20px;
-  background: linear-gradient(135deg, #2196F3, #1976D2);
+  background: linear-gradient(135deg, #2196f3, #1976d2);
   color: white;
   padding: 0.75rem 1rem;
   border-radius: 8px;
@@ -49,7 +45,9 @@ function handleAnimationEnd(event: AnimationEvent) {
   font-size: 0.85rem;
   font-weight: 500;
   max-width: 280px;
-  animation: slideInRight 0.3s ease, fadeOut 0.3s ease 2.2s;
+  animation:
+    slideInRight 0.3s ease,
+    fadeOut 0.3s ease 2.2s;
 }
 
 .live-notification-content {

@@ -1,3 +1,9 @@
+<script setup lang="ts">
+defineEmits<{
+  'show-auth': []
+}>()
+</script>
+
 <template>
   <div class="auth-required">
     <div class="auth-message">
@@ -15,12 +21,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-defineEmits<{
-  'show-auth': []
-}>()
-</script>
 
 <style scoped>
 .auth-required {

@@ -1,78 +1,3 @@
-<template>
-  <div class="snake-game">
-    <AuthRequired v-if="!authStore.isAuthenticated" @show-auth="$emit('show-auth')" />
-
-    <div v-else class="game-content">
-      <div class="game-header">
-        <GameStats 
-          :current-score="currentScore" 
-          :best-score="bestScore" 
-          :game-speed="gameSpeed" 
-        />
-      </div>
-
-      <div class="game-container">
-        <canvas
-          ref="gameCanvas"
-          :width="CANVAS_WIDTH"
-          :height="CANVAS_HEIGHT"
-          tabindex="0"
-          class="game-canvas"
-          @click="focusGameCanvas"
-        ></canvas>
-
-        <GameOverlay
-          v-if="gameState === 'menu'"
-          type="menu"
-          icon="🐌"
-          title="Welcome to Snailke!"
-          description="Guide your snail through the garden and collect delicious lettuce!"
-          :buttons="[{ label: 'Start Adventure', icon: '🚀', action: 'startGame', variant: 'primary' }]"
-          @start-game="startNewGame"
-        />
-
-        <GameOverlay
-          v-if="gameState === 'paused'"
-          type="paused"
-          icon="⏸️"
-          title="Game Paused"
-          description="Take a breath, snail racer!"
-          :buttons="[
-            { label: 'Resume', icon: '▶️', action: 'resumeGame', variant: 'primary' },
-            { label: 'Restart', icon: '🔄', action: 'resetGame', variant: 'secondary' }
-          ]"
-          @resume-game="resumeCurrentGame"
-          @reset-game="resetToMainMenu"
-        />
-
-        <GameOverlay
-          v-if="gameState === 'gameOver'"
-          type="gameOver"
-          icon="💫"
-          :title="currentScore > bestScore ? 'New Record!' : 'Game Over!'"
-          :final-score="currentScore"
-          :show-celebration="currentScore > bestScore"
-          :is-loading="authStore.isAuthenticated && scoreSubmission.isPending.value"
-          :buttons="[
-            { label: 'Play Again', icon: '🎮', action: 'startGame', variant: 'primary' },
-            { label: 'Main Menu', icon: '🏠', action: 'resetGame', variant: 'secondary' }
-          ]"
-          @start-game="startNewGame"
-          @reset-game="resetToMainMenu"
-        />
-      </div>
-
-      <GameControls
-        :game-state="gameState"
-        :game-speed="gameSpeed"
-        @pause="pauseCurrentGame"
-        @reset="resetToMainMenu"
-        @speed-change="handleSpeedChange"
-      />
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick } from 'vue'
 import { useMutation } from '@tanstack/vue-query'
@@ -435,6 +360,79 @@ onUnmounted(() => {
   window.removeEventListener('keydown', handlePlayerInput)
 })
 </script>
+
+<template>
+  <div class="snake-game">
+    <AuthRequired v-if="!authStore.isAuthenticated" @show-auth="$emit('show-auth')" />
+
+    <div v-else class="game-content">
+      <div class="game-header">
+        <GameStats :current-score="currentScore" :best-score="bestScore" :game-speed="gameSpeed" />
+      </div>
+
+      <div class="game-container">
+        <canvas
+          ref="gameCanvas"
+          :width="CANVAS_WIDTH"
+          :height="CANVAS_HEIGHT"
+          tabindex="0"
+          class="game-canvas"
+          @click="focusGameCanvas"
+        ></canvas>
+
+        <GameOverlay
+          v-if="gameState === 'menu'"
+          type="menu"
+          icon="🐌"
+          title="Welcome to Snailke!"
+          description="Guide your snail through the garden and collect delicious lettuce!"
+          :buttons="[
+            { label: 'Start Adventure', icon: '🚀', action: 'startGame', variant: 'primary' },
+          ]"
+          @start-game="startNewGame"
+        />
+
+        <GameOverlay
+          v-if="gameState === 'paused'"
+          type="paused"
+          icon="⏸️"
+          title="Game Paused"
+          description="Take a breath, snail racer!"
+          :buttons="[
+            { label: 'Resume', icon: '▶️', action: 'resumeGame', variant: 'primary' },
+            { label: 'Restart', icon: '🔄', action: 'resetGame', variant: 'secondary' },
+          ]"
+          @resume-game="resumeCurrentGame"
+          @reset-game="resetToMainMenu"
+        />
+
+        <GameOverlay
+          v-if="gameState === 'gameOver'"
+          type="gameOver"
+          icon="💫"
+          :title="currentScore > bestScore ? 'New Record!' : 'Game Over!'"
+          :final-score="currentScore"
+          :show-celebration="currentScore > bestScore"
+          :is-loading="authStore.isAuthenticated && scoreSubmission.isPending.value"
+          :buttons="[
+            { label: 'Play Again', icon: '🎮', action: 'startGame', variant: 'primary' },
+            { label: 'Main Menu', icon: '🏠', action: 'resetGame', variant: 'secondary' },
+          ]"
+          @start-game="startNewGame"
+          @reset-game="resetToMainMenu"
+        />
+      </div>
+
+      <GameControls
+        :game-state="gameState"
+        :game-speed="gameSpeed"
+        @pause="pauseCurrentGame"
+        @reset="resetToMainMenu"
+        @speed-change="handleSpeedChange"
+      />
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .snake-game {

@@ -1,16 +1,16 @@
-<template>
-  <div class="stat-card">
-    <div class="stat-value">{{ value }}</div>
-    <div class="stat-label">{{ label }}</div>
-  </div>
-</template>
-
 <script setup lang="ts">
 defineProps<{
   value: string | number
   label: string
 }>()
 </script>
+
+<template>
+  <div class="stat-card">
+    <div class="stat-value">{{ value }}</div>
+    <div class="stat-label">{{ label }}</div>
+  </div>
+</template>
 
 <style scoped>
 .stat-card {
@@ -19,13 +19,13 @@ defineProps<{
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  border-left: 4px solid #4CAF50;
+  border-left: 4px solid #4caf50;
 }
 
 .stat-value {
   font-size: 2rem;
   font-weight: bold;
-  color: #4CAF50;
+  color: #4caf50;
   margin-bottom: 0.5rem;
 }
 

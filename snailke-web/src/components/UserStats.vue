@@ -1,12 +1,33 @@
+<script setup lang="ts">
+import type { Score } from '@/services/api'
+
+defineProps<{
+  userScores: Score[] | undefined
+}>()
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  const now = new Date()
+  const diffMs = now.getTime() - date.getTime()
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffDays === 0) {
+    return 'Today'
+  } else if (diffDays === 1) {
+    return 'Yesterday'
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`
+  } else {
+    return date.toLocaleDateString()
+  }
+}
+</script>
+
 <template>
   <div v-if="userScores && userScores.length > 0" class="user-stats">
     <h3>Your Recent Scores</h3>
     <div class="user-scores-list">
-      <div
-        v-for="userScore in userScores.slice(0, 5)"
-        :key="userScore.id"
-        class="user-score-item"
-      >
+      <div v-for="userScore in userScores.slice(0, 5)" :key="userScore.id" class="user-score-item">
         <span class="user-score">{{ userScore.score.toLocaleString() }}</span>
         <span class="user-date">{{ formatDate(userScore.createdAt) }}</span>
       </div>
@@ -34,31 +55,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import type { Score } from '@/services/api'
-
-defineProps<{
-  userScores: Score[] | undefined
-}>()
-
-function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  const now = new Date()
-  const diffMs = now.getTime() - date.getTime()
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-
-  if (diffDays === 0) {
-    return 'Today'
-  } else if (diffDays === 1) {
-    return 'Yesterday'
-  } else if (diffDays < 7) {
-    return `${diffDays} days ago`
-  } else {
-    return date.toLocaleDateString()
-  }
-}
-</script>
 
 <style scoped>
 .user-stats {

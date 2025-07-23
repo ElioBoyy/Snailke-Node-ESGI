@@ -1,11 +1,20 @@
+<script setup lang="ts">
+defineProps<{
+  gameState: 'menu' | 'playing' | 'paused' | 'gameOver'
+  gameSpeed: number
+}>()
+
+defineEmits<{
+  pause: []
+  reset: []
+  speedChange: [value: string]
+}>()
+</script>
+
 <template>
   <div class="game-controls">
-    <button @click="$emit('pause')" :disabled="gameState !== 'playing'">
-      ⏸️ Pause
-    </button>
-    <button @click="$emit('reset')">
-      🔄 Reset
-    </button>
+    <button @click="$emit('pause')" :disabled="gameState !== 'playing'">⏸️ Pause</button>
+    <button @click="$emit('reset')">🔄 Reset</button>
     <div class="speed-control">
       <label>Speed: </label>
       <input
@@ -20,19 +29,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-defineProps<{
-  gameState: 'menu' | 'playing' | 'paused' | 'gameOver'
-  gameSpeed: number
-}>()
-
-defineEmits<{
-  pause: []
-  reset: []
-  speedChange: [value: string]
-}>()
-</script>
 
 <style scoped>
 .game-controls {

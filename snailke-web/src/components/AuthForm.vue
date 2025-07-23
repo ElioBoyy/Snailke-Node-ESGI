@@ -1,125 +1,3 @@
-<template>
-  <div class="auth-container">
-    <!-- Simple Background -->
-    <div class="auth-background"></div>
-
-    <!-- Main Auth Card -->
-    <div class="auth-card">
-      <div class="auth-header">
-        <div class="logo-animation">
-          <div class="snail-icon">🐌</div>
-          <div class="logo-text">Snailke</div>
-        </div>
-        <p class="auth-subtitle">
-          {{ mode === 'login' ? 'Welcome back, snail racer!' : 'Join the slowest race ever!' }}
-        </p>
-      </div>
-
-      <!-- Mode Switcher -->
-      <div class="mode-switcher">
-        <div class="switcher-track">
-          <button @click="mode = 'login'" :class="{ active: mode === 'login' }" class="mode-btn">
-            <span class="btn-icon">🔑</span>
-            <span class="btn-text">Login</span>
-          </button>
-          <button
-            @click="mode = 'register'"
-            :class="{ active: mode === 'register' }"
-            class="mode-btn"
-          >
-            <span class="btn-icon">✨</span>
-            <span class="btn-text">Sign Up</span>
-          </button>
-          <div class="switcher-indicator" :class="{ 'move-right': mode === 'register' }"></div>
-        </div>
-      </div>
-
-      <!-- Form Container -->
-      <form @submit.prevent="handleSubmit" class="auth-form">
-        <div class="form-fields">
-          <FloatingInput
-            v-if="mode === 'register'"
-            id="username"
-            v-model="form.username"
-            icon="👤"
-            label="Username"
-            type="text"
-            :disabled="isLoading"
-            :minlength="3"
-            :maxlength="50"
-          />
-
-          <FloatingInput
-            id="email"
-            v-model="form.email"
-            icon="📧"
-            label="Email Address"
-            type="email"
-            :disabled="isLoading"
-          />
-
-          <FloatingInput
-            id="password"
-            v-model="form.password"
-            icon="🔒"
-            label="Password"
-            type="password"
-            :disabled="isLoading"
-            :minlength="mode === 'register' ? 6 : undefined"
-          />
-
-          <PasswordStrength v-if="mode === 'register'" :password="form.password" />
-        </div>
-
-        <!-- Error Message -->
-        <div v-if="error" class="error-banner">
-          <span class="error-icon">⚠️</span>
-          <span class="error-text">{{ error }}</span>
-        </div>
-
-        <!-- Success Message -->
-        <div v-if="success" class="success-banner">
-          <span class="success-icon">✅</span>
-          <span class="success-text">{{ success }}</span>
-        </div>
-
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          :disabled="isLoading || !isFormValid"
-          class="submit-button"
-          :class="{ loading: isLoading }"
-        >
-          <div class="btn-content">
-            <span v-if="isLoading" class="loading-spinner"></span>
-            <span class="btn-icon" v-if="!isLoading">
-              {{ mode === 'login' ? '🚀' : '🌟' }}
-            </span>
-            <span class="btn-text">
-              {{
-                isLoading ? 'Please wait...' : mode === 'login' ? 'Start Racing' : 'Join the Race'
-              }}
-            </span>
-          </div>
-        </button>
-
-        <!-- Additional Actions -->
-        <div class="form-footer">
-          <div v-if="mode === 'login'" class="forgot-password">
-            <a href="#" class="link">Forgot your password? 🤔</a>
-          </div>
-          <div v-else class="terms-notice">
-            <p class="terms-text">
-              By signing up, you agree to have the most fun playing the slowest snake game ever!
-              🐌✨
-            </p>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useMutation, useQueryClient } from '@tanstack/vue-query'
@@ -145,7 +23,6 @@ const form = ref({
 const error = ref('')
 const success = ref('')
 
-// Form validation
 const isFormValid = computed(() => {
   const emailValid = form.value.email && /\S+@\S+\.\S+/.test(form.value.email)
   const passwordValid =
@@ -156,7 +33,6 @@ const isFormValid = computed(() => {
   return emailValid && passwordValid && usernameValid
 })
 
-// Mutations
 const loginMutation = useMutation({
   mutationFn: (data: LoginData) => authApi.login(data),
   onSuccess: (user) => {
@@ -208,7 +84,6 @@ const registerMutation = useMutation({
 
 const isLoading = computed(() => loginMutation.isPending.value || registerMutation.isPending.value)
 
-// Functions
 function handleSubmit() {
   if (!isFormValid.value) return
 
@@ -240,8 +115,121 @@ function resetForm() {
 }
 </script>
 
+<template>
+  <div class="auth-container">
+    <div class="auth-background"></div>
+
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="logo-animation">
+          <div class="snail-icon">🐌</div>
+          <div class="logo-text">Snailke</div>
+        </div>
+        <p class="auth-subtitle">
+          {{ mode === 'login' ? 'Welcome back, snail racer!' : 'Join the slowest race ever!' }}
+        </p>
+      </div>
+
+      <div class="mode-switcher">
+        <div class="switcher-track">
+          <button @click="mode = 'login'" :class="{ active: mode === 'login' }" class="mode-btn">
+            <span class="btn-icon">🔑</span>
+            <span class="btn-text">Login</span>
+          </button>
+          <button
+            @click="mode = 'register'"
+            :class="{ active: mode === 'register' }"
+            class="mode-btn"
+          >
+            <span class="btn-icon">✨</span>
+            <span class="btn-text">Sign Up</span>
+          </button>
+          <div class="switcher-indicator" :class="{ 'move-right': mode === 'register' }"></div>
+        </div>
+      </div>
+
+      <form @submit.prevent="handleSubmit" class="auth-form">
+        <div class="form-fields">
+          <FloatingInput
+            v-if="mode === 'register'"
+            id="username"
+            v-model="form.username"
+            icon="👤"
+            label="Username"
+            type="text"
+            :disabled="isLoading"
+            :minlength="3"
+            :maxlength="50"
+          />
+
+          <FloatingInput
+            id="email"
+            v-model="form.email"
+            icon="📧"
+            label="Email Address"
+            type="email"
+            :disabled="isLoading"
+          />
+
+          <FloatingInput
+            id="password"
+            v-model="form.password"
+            icon="🔒"
+            label="Password"
+            type="password"
+            :disabled="isLoading"
+            :minlength="mode === 'register' ? 6 : undefined"
+          />
+
+          <PasswordStrength v-if="mode === 'register'" :password="form.password" />
+        </div>
+
+        <div v-if="error" class="error-banner">
+          <span class="error-icon">⚠️</span>
+          <span class="error-text">{{ error }}</span>
+        </div>
+
+        <div v-if="success" class="success-banner">
+          <span class="success-icon">✅</span>
+          <span class="success-text">{{ success }}</span>
+        </div>
+
+        <button
+          type="submit"
+          :disabled="isLoading || !isFormValid"
+          class="submit-button"
+          :class="{ loading: isLoading }"
+        >
+          <div class="btn-content">
+            <span v-if="isLoading" class="loading-spinner"></span>
+            <span class="btn-icon" v-if="!isLoading">
+              {{ mode === 'login' ? '🚀' : '🌟' }}
+            </span>
+            <span class="btn-text">
+              {{
+                isLoading ? 'Please wait...' : mode === 'login' ? 'Start Racing' : 'Join the Race'
+              }}
+            </span>
+          </div>
+        </button>
+
+        <div class="form-footer">
+          <div v-if="mode === 'login'" class="forgot-password">
+            <a href="#" class="link">Forgot your password? 🤔</a>
+          </div>
+          <div v-else class="terms-notice">
+            <p class="terms-text">
+              By signing up, you agree to have the most fun playing the slowest snake game ever!
+              🐌✨
+            </p>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
 <style scoped>
-/* Main Container */
 .auth-container {
   position: relative;
   min-height: 100vh;
@@ -252,12 +240,10 @@ function resetForm() {
   overflow: hidden;
 }
 
-/* Simple Background */
 .auth-background {
   display: none;
 }
 
-/* Main Auth Card */
 .auth-card {
   background: white;
   border-radius: 24px;
@@ -281,7 +267,6 @@ function resetForm() {
   }
 }
 
-/* Header */
 .auth-header {
   text-align: center;
   margin-bottom: 2rem;
@@ -332,7 +317,6 @@ function resetForm() {
   }
 }
 
-/* Mode Switcher */
 .mode-switcher {
   margin-bottom: 2rem;
 }
@@ -390,7 +374,6 @@ function resetForm() {
   box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
 }
 
-/* Form Styles */
 .auth-form {
   position: relative;
 }
@@ -536,7 +519,6 @@ function resetForm() {
   font-weight: 600;
 }
 
-/* Messages */
 .error-banner,
 .success-banner {
   display: flex;
@@ -577,7 +559,6 @@ function resetForm() {
   }
 }
 
-/* Submit Button */
 .submit-button {
   width: 100%;
   height: 60px;
@@ -637,7 +618,6 @@ function resetForm() {
   font-size: 1.2rem;
 }
 
-/* Form Footer */
 .form-footer {
   text-align: center;
 }
@@ -661,7 +641,6 @@ function resetForm() {
   margin: 0;
 }
 
-/* Responsive Design */
 @media (max-width: 640px) {
   .auth-container {
     padding: 1rem;

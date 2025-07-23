@@ -1,10 +1,3 @@
-<template>
-  <button @click="$emit('refresh')" :disabled="isRefreshing" class="refresh-button">
-    <span class="refresh-icon" :class="{ spinning: isRefreshing }">🔄</span>
-    <span class="refresh-text">{{ isRefreshing ? 'Updating...' : 'Refresh' }}</span>
-  </button>
-</template>
-
 <script setup lang="ts">
 defineProps<{
   isRefreshing: boolean
@@ -14,6 +7,13 @@ defineEmits<{
   refresh: []
 }>()
 </script>
+
+<template>
+  <button @click="$emit('refresh')" :disabled="isRefreshing" class="refresh-button">
+    <span class="refresh-icon" :class="{ spinning: isRefreshing }">🔄</span>
+    <span class="refresh-text">{{ isRefreshing ? 'Updating...' : 'Refresh' }}</span>
+  </button>
+</template>
 
 <style scoped>
 .refresh-button {
@@ -53,7 +53,11 @@ defineEmits<{
 }
 
 @keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

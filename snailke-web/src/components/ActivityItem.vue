@@ -1,22 +1,3 @@
-<template>
-  <div 
-    class="activity-item"
-    :class="{ 'personal-best': isPersonalBest }"
-  >
-    <div class="activity-icon">
-      <span v-if="isPersonalBest">🏆</span>
-      <span v-else>🎮</span>
-    </div>
-    <div class="activity-details">
-      <div class="activity-score">{{ score.toLocaleString() }} points</div>
-      <div class="activity-date">{{ formatDate(date) }}</div>
-    </div>
-    <div v-if="isPersonalBest" class="best-badge">
-      Personal Best!
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 defineProps<{
   score: number
@@ -26,12 +7,12 @@ defineProps<{
 
 function formatDate(dateString: string): string {
   if (!dateString) return ''
-  
+
   const date = new Date(dateString)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) {
     return 'today'
   } else if (diffDays === 1) {
@@ -45,6 +26,20 @@ function formatDate(dateString: string): string {
   }
 }
 </script>
+
+<template>
+  <div class="activity-item" :class="{ 'personal-best': isPersonalBest }">
+    <div class="activity-icon">
+      <span v-if="isPersonalBest">🏆</span>
+      <span v-else>🎮</span>
+    </div>
+    <div class="activity-details">
+      <div class="activity-score">{{ score.toLocaleString() }} points</div>
+      <div class="activity-date">{{ formatDate(date) }}</div>
+    </div>
+    <div v-if="isPersonalBest" class="best-badge">Personal Best!</div>
+  </div>
+</template>
 
 <style scoped>
 .activity-item {

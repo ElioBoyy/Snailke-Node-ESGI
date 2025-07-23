@@ -1,35 +1,3 @@
-<template>
-  <div class="input-group" :class="{ 'focus-within': isFocused }">
-    <div class="input-icon">{{ icon }}</div>
-    <div class="input-wrapper">
-      <input 
-        :id="id"
-        :value="modelValue"
-        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-        @focus="isFocused = true"
-        @blur="isFocused = false"
-        :type="type" 
-        required 
-        placeholder=" "
-        :disabled="disabled"
-        class="form-input"
-        :minlength="minlength"
-        :maxlength="maxlength"
-      >
-      <label :for="id" class="floating-label">{{ label }}</label>
-      <button 
-        v-if="type === 'password'"
-        type="button" 
-        @click="togglePassword"
-        class="password-toggle"
-        :disabled="disabled"
-      >
-        {{ showPassword ? '👁️' : '👁️‍🗨️' }}
-      </button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 
@@ -63,6 +31,38 @@ function togglePassword() {
 }
 </script>
 
+<template>
+  <div class="input-group" :class="{ 'focus-within': isFocused }">
+    <div class="input-icon">{{ icon }}</div>
+    <div class="input-wrapper">
+      <input
+        :id="id"
+        :value="modelValue"
+        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+        @focus="isFocused = true"
+        @blur="isFocused = false"
+        :type="type"
+        required
+        placeholder=" "
+        :disabled="disabled"
+        class="form-input"
+        :minlength="minlength"
+        :maxlength="maxlength"
+      />
+      <label :for="id" class="floating-label">{{ label }}</label>
+      <button
+        v-if="type === 'password'"
+        type="button"
+        @click="togglePassword"
+        class="password-toggle"
+        :disabled="disabled"
+      >
+        {{ showPassword ? '👁️' : '👁️‍🗨️' }}
+      </button>
+    </div>
+  </div>
+</template>
+
 <style scoped>
 .input-group {
   position: relative;
@@ -78,7 +78,7 @@ function togglePassword() {
 .input-group.focus-within,
 .input-group:focus-within {
   background: white;
-  border-color: #4CAF50;
+  border-color: #4caf50;
   box-shadow: 0 0 0 4px rgba(76, 175, 80, 0.1);
 }
 
@@ -94,7 +94,7 @@ function togglePassword() {
 
 .input-group.focus-within .input-icon,
 .input-group:focus-within .input-icon {
-  color: #4CAF50;
+  color: #4caf50;
 }
 
 .input-wrapper {
@@ -136,7 +136,7 @@ function togglePassword() {
 .form-input:not(:placeholder-shown) + .floating-label {
   top: 16px;
   font-size: 0.75rem;
-  color: #4CAF50;
+  color: #4caf50;
   font-weight: 600;
 }
 

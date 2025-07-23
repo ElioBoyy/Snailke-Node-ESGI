@@ -1,27 +1,3 @@
-<template>
-  <div
-    class="score-item"
-    :class="{
-      'current-user': isCurrentUser,
-      'top-3': isTop3,
-      'new-score': isNewScore,
-    }"
-  >
-    <div class="rank">
-      <span v-if="rank === 1">🥇</span>
-      <span v-else-if="rank === 2">🥈</span>
-      <span v-else-if="rank === 3">🥉</span>
-      <span v-else>{{ rank }}</span>
-    </div>
-    <div class="player">
-      {{ username || 'Anonymous' }}
-      <span v-if="isCurrentUser" class="you-badge">You</span>
-    </div>
-    <div class="score">{{ score.toLocaleString() }}</div>
-    <div class="date">{{ formatDate(date) }}</div>
-  </div>
-</template>
-
 <script setup lang="ts">
 defineProps<{
   rank: number
@@ -50,6 +26,30 @@ function formatDate(dateString: string): string {
   }
 }
 </script>
+
+<template>
+  <div
+    class="score-item"
+    :class="{
+      'current-user': isCurrentUser,
+      'top-3': isTop3,
+      'new-score': isNewScore,
+    }"
+  >
+    <div class="rank">
+      <span v-if="rank === 1">🥇</span>
+      <span v-else-if="rank === 2">🥈</span>
+      <span v-else-if="rank === 3">🥉</span>
+      <span v-else>{{ rank }}</span>
+    </div>
+    <div class="player">
+      {{ username || 'Anonymous' }}
+      <span v-if="isCurrentUser" class="you-badge">You</span>
+    </div>
+    <div class="score">{{ score.toLocaleString() }}</div>
+    <div class="date">{{ formatDate(date) }}</div>
+  </div>
+</template>
 
 <style scoped>
 .score-item {

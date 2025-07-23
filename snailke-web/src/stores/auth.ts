@@ -34,9 +34,19 @@ export const useAuthStore = defineStore('auth', () => {
   function clearUser() {
     user.value = null
     try {
-      localStorage.removeItem('snailke-user')
+      // Clear all localStorage
+      localStorage.clear()
+      
+      // Clear all cookies
+      document.cookie.split(";").forEach(cookie => {
+        const eqPos = cookie.indexOf("=")
+        const name = eqPos > -1 ? cookie.substring(0, eqPos).trim() : cookie.trim()
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`
+        document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`
+      })
     } catch (error) {
-      console.warn('Failed to remove user from localStorage:', error)
+      console.warn('Failed to clear user data:', error)
     }
   }
 

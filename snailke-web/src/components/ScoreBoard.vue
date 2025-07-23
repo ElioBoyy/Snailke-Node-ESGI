@@ -1,53 +1,3 @@
-<template>
-  <div class="score-board">
-    <div class="scoreboard-header">
-      <div class="header-title">
-        <h2>🏆 Global Leaderboard</h2>
-        <p class="header-subtitle">The fastest snails in the garden!</p>
-      </div>
-      <div class="header-controls">
-        <ConnectionStatus :is-connected="isConnected" :connection-retries="connectionRetries" />
-        <RefreshButton :is-refreshing="isRefreshing" @refresh="refreshScores" />
-      </div>
-    </div>
-
-    <div v-if="isLoading" class="loading">Loading scores...</div>
-
-    <div v-else-if="error" class="error">
-      <p>Failed to load scores: {{ error.message }}</p>
-      <button @click="refreshScores" class="retry-btn">Try Again</button>
-    </div>
-
-    <div v-else-if="scores && scores.length > 0" class="scores-list">
-      <div class="score-item header">
-        <div class="rank">Rank</div>
-        <div class="player">Player</div>
-        <div class="score">Score</div>
-        <div class="date">Date</div>
-      </div>
-
-      <ScoreItem
-        v-for="(scoreItem, index) in scores"
-        :key="scoreItem.id"
-        :rank="index + 1"
-        :username="scoreItem.user?.username || 'Anonymous'"
-        :score="scoreItem.score"
-        :date="scoreItem.createdAt"
-        :is-current-user="scoreItem.userId === authStore.user?.id"
-        :is-top-3="index < 3"
-        :is-new-score="recentScores.has(scoreItem.id)"
-      />
-    </div>
-
-    <div v-else class="empty-state">
-      <p>🐌 No scores yet!</p>
-      <p>Be the first to play and set a high score!</p>
-    </div>
-
-    <UserStats v-if="authStore.isAuthenticated" :user-scores="userScores" />
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useQuery } from '@tanstack/vue-query'
@@ -171,6 +121,56 @@ onMounted(() => {
 
 onUnmounted(() => {})
 </script>
+
+<template>
+  <div class="score-board">
+    <div class="scoreboard-header">
+      <div class="header-title">
+        <h2>🏆 Global Leaderboard</h2>
+        <p class="header-subtitle">The fastest snails in the garden!</p>
+      </div>
+      <div class="header-controls">
+        <ConnectionStatus :is-connected="isConnected" :connection-retries="connectionRetries" />
+        <RefreshButton :is-refreshing="isRefreshing" @refresh="refreshScores" />
+      </div>
+    </div>
+
+    <div v-if="isLoading" class="loading">Loading scores...</div>
+
+    <div v-else-if="error" class="error">
+      <p>Failed to load scores: {{ error.message }}</p>
+      <button @click="refreshScores" class="retry-btn">Try Again</button>
+    </div>
+
+    <div v-else-if="scores && scores.length > 0" class="scores-list">
+      <div class="score-item header">
+        <div class="rank">Rank</div>
+        <div class="player">Player</div>
+        <div class="score">Score</div>
+        <div class="date">Date</div>
+      </div>
+
+      <ScoreItem
+        v-for="(scoreItem, index) in scores"
+        :key="scoreItem.id"
+        :rank="index + 1"
+        :username="scoreItem.user?.username || 'Anonymous'"
+        :score="scoreItem.score"
+        :date="scoreItem.createdAt"
+        :is-current-user="scoreItem.userId === authStore.user?.id"
+        :is-top-3="index < 3"
+        :is-new-score="recentScores.has(scoreItem.id)"
+      />
+    </div>
+
+    <div v-else class="empty-state">
+      <p>🐌 No scores yet!</p>
+      <p>Be the first to play and set a high score!</p>
+    </div>
+
+    <UserStats v-if="authStore.isAuthenticated" :user-scores="userScores" />
+  </div>
+</template>
 
 <style scoped>
 .score-board {

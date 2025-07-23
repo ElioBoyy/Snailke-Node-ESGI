@@ -1,57 +1,3 @@
-<template>
-  <div class="user-profile">
-    <div class="profile-header">
-      <div class="user-info">
-        <div class="avatar">🐌</div>
-        <div class="user-details">
-          <h3>{{ authStore.user?.email }}</h3>
-          <p class="join-date">
-            Joined {{ formatDate(authStore.user?.createdAt || '') }}
-          </p>
-        </div>
-      </div>
-      <button @click="handleLogout" :disabled="isLoggingOut" class="logout-btn">
-        {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
-      </button>
-    </div>
-
-    <div v-if="authStore.user" class="profile-content">
-      <!-- Quick stats -->
-      <div v-if="userScores && userScores.length > 0" class="quick-stats">
-        <StatCard :value="userScores.length" label="Games Played" />
-        <StatCard :value="bestScore.toLocaleString()" label="Best Score" />
-        <StatCard :value="averageScore.toLocaleString()" label="Average Score" />
-        <StatCard :value="leaderboardRank" label="Leaderboard Rank" />
-      </div>
-
-      <!-- Recent activity -->
-      <div v-if="userScores && userScores.length > 0" class="recent-activity">
-        <h4>Recent Games</h4>
-        <div class="activity-list">
-          <ActivityItem
-            v-for="score in recentGames"
-            :key="score.id"
-            :score="score.score"
-            :date="score.createdAt"
-            :is-personal-best="score.score === bestScore"
-          />
-        </div>
-      </div>
-
-
-      <!-- Empty state for new users -->
-      <div v-if="!userScores || userScores.length === 0" class="empty-profile">
-        <div class="empty-icon">🐌</div>
-        <h3>Welcome to Snailke!</h3>
-        <p>Start playing to see your stats and achievements here.</p>
-        <button @click="$emit('startGame')" class="start-playing-btn">
-          Start Playing
-        </button>
-      </div>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query'
@@ -67,7 +13,6 @@ defineEmits<{
 const authStore = useAuthStore()
 const queryClient = useQueryClient()
 
-// Logout mutation
 const logoutMutation = useMutation({
   mutationFn: authApi.logout,
   onSuccess: () => {
@@ -76,15 +21,13 @@ const logoutMutation = useMutation({
   },
   onError: (error) => {
     console.error('Logout failed:', error)
-    // Even if logout fails on server, clear local state
     authStore.clearUser()
     queryClient.clear()
-  }
+  },
 })
 
 const isLoggingOut = computed(() => logoutMutation.isPending.value)
 
-// User scores query
 const { data: userScores } = useQuery({
   queryKey: ['userScores', authStore.user?.id],
   queryFn: async () => {
@@ -100,16 +43,14 @@ const { data: userScores } = useQuery({
   retry: false,
 })
 
-// Leaderboard for ranking
 const { data: leaderboardScores } = useQuery({
   queryKey: ['leaderboard'],
   queryFn: scoresApi.getLeaderboard,
 })
 
-// Computed properties
 const bestScore = computed(() => {
   if (!userScores.value || userScores.value.length === 0) return 0
-  return Math.max(...userScores.value.map(s => s.score))
+  return Math.max(...userScores.value.map((s) => s.score))
 })
 
 const averageScore = computed(() => {
@@ -126,25 +67,23 @@ const recentGames = computed(() => {
 
 const leaderboardRank = computed(() => {
   if (!leaderboardScores.value || !authStore.user) return 'N/A'
-  
-  const userRank = leaderboardScores.value.findIndex(score => score.userId === authStore.user?.id)
+
+  const userRank = leaderboardScores.value.findIndex((score) => score.userId === authStore.user?.id)
   return userRank === -1 ? 'N/A' : `#${userRank + 1}`
 })
 
-
-// Functions
 function handleLogout() {
   logoutMutation.mutate()
 }
 
 function formatDate(dateString: string): string {
   if (!dateString) return ''
-  
+
   const date = new Date(dateString)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
-  
+
   if (diffDays === 0) {
     return 'today'
   } else if (diffDays === 1) {
@@ -158,6 +97,52 @@ function formatDate(dateString: string): string {
   }
 }
 </script>
+
+<template>
+  <div class="user-profile">
+    <div class="profile-header">
+      <div class="user-info">
+        <div class="avatar">🐌</div>
+        <div class="user-details">
+          <h3>{{ authStore.user?.email }}</h3>
+          <p class="join-date">Joined {{ formatDate(authStore.user?.createdAt || '') }}</p>
+        </div>
+      </div>
+      <button @click="handleLogout" :disabled="isLoggingOut" class="logout-btn">
+        {{ isLoggingOut ? 'Logging out...' : 'Logout' }}
+      </button>
+    </div>
+
+    <div v-if="authStore.user" class="profile-content">
+      <div v-if="userScores && userScores.length > 0" class="quick-stats">
+        <StatCard :value="userScores.length" label="Games Played" />
+        <StatCard :value="bestScore.toLocaleString()" label="Best Score" />
+        <StatCard :value="averageScore.toLocaleString()" label="Average Score" />
+        <StatCard :value="leaderboardRank" label="Leaderboard Rank" />
+      </div>
+
+      <div v-if="userScores && userScores.length > 0" class="recent-activity">
+        <h4>Recent Games</h4>
+        <div class="activity-list">
+          <ActivityItem
+            v-for="score in recentGames"
+            :key="score.id"
+            :score="score.score"
+            :date="score.createdAt"
+            :is-personal-best="score.score === bestScore"
+          />
+        </div>
+      </div>
+
+      <div v-if="!userScores || userScores.length === 0" class="empty-profile">
+        <div class="empty-icon">🐌</div>
+        <h3>Welcome to Snailke!</h3>
+        <p>Start playing to see your stats and achievements here.</p>
+        <button @click="$emit('startGame')" class="start-playing-btn">Start Playing</button>
+      </div>
+    </div>
+  </div>
+</template>
 
 <style scoped>
 .user-profile {
@@ -190,7 +175,7 @@ function formatDate(dateString: string): string {
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   border-radius: 50%;
 }
 
@@ -233,7 +218,6 @@ function formatDate(dateString: string): string {
   margin-bottom: 2rem;
 }
 
-
 .recent-activity {
   background-color: white;
   padding: 1.5rem;
@@ -254,8 +238,6 @@ function formatDate(dateString: string): string {
   gap: 1rem;
 }
 
-
-
 .empty-profile {
   text-align: center;
   padding: 3rem;
@@ -270,7 +252,7 @@ function formatDate(dateString: string): string {
 }
 
 .empty-profile h3 {
-  color: #4CAF50;
+  color: #4caf50;
   margin-bottom: 1rem;
 }
 
@@ -280,7 +262,7 @@ function formatDate(dateString: string): string {
 }
 
 .start-playing-btn {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   padding: 1rem 2rem;
@@ -299,13 +281,13 @@ function formatDate(dateString: string): string {
   .user-profile {
     padding: 1rem;
   }
-  
+
   .profile-header {
     flex-direction: column;
     gap: 1rem;
     text-align: center;
   }
-  
+
   .quick-stats {
     grid-template-columns: repeat(2, 1fr);
   }

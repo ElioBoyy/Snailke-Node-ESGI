@@ -1,3 +1,108 @@
+<script setup lang="ts">
+import { computed, onMounted } from 'vue'
+import { useQuery } from '@tanstack/vue-query'
+import { achievementsApi } from '@/services/api'
+import { useAuthStore } from '@/stores/auth'
+import AchievementCard from './AchievementCard.vue'
+
+const authStore = useAuthStore()
+
+const {
+  data: allAchievements,
+  isLoading: isLoadingAll,
+  error: errorAll,
+  refetch: refetchAll,
+} = useQuery({
+  queryKey: ['achievements'],
+  queryFn: achievementsApi.getAchievements,
+})
+
+const {
+  data: userAchievements,
+  isLoading: isLoadingUser,
+  error: errorUser,
+  refetch: refetchUser,
+} = useQuery({
+  queryKey: ['userAchievements', authStore.user?.id],
+  queryFn: async () => {
+    if (!authStore.user?.id) return []
+    try {
+      return await achievementsApi.getUserAchievements()
+    } catch (error) {
+      console.error('Failed to fetch user achievements:', error)
+      return []
+    }
+  },
+  enabled: false,
+  retry: false,
+})
+
+const isLoading = computed(() => isLoadingAll.value || isLoadingUser.value)
+const error = computed(() => errorAll.value || errorUser.value)
+
+// Merge user achievements with all achievements
+const sortedAchievements = computed(() => {
+  if (!allAchievements.value) return []
+
+  const achievements = allAchievements.value.map((achievement) => {
+    const userAchievement = userAchievements.value?.find((ua) => ua.id === achievement.id)
+
+    return {
+      ...achievement,
+      progress: userAchievement?.progress || 0,
+      unlockedAt: userAchievement?.unlockedAt || null,
+    }
+  })
+
+  // Sort: unlocked first (by unlock date desc), then by progress desc, then by points asc
+  return achievements.sort((a, b) => {
+    if (a.unlockedAt && b.unlockedAt) {
+      return new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime()
+    }
+    if (a.unlockedAt) return -1
+    if (b.unlockedAt) return 1
+
+    const aProgress = (a.progress / a.condition) * 100
+    const bProgress = (b.progress / b.condition) * 100
+
+    if (aProgress !== bProgress) {
+      return bProgress - aProgress
+    }
+
+    return a.points - b.points
+  })
+})
+
+const recentlyUnlocked = computed(() => {
+  return sortedAchievements.value.filter((a) => a.unlockedAt).slice(0, 3)
+})
+
+const unlockedCount = computed(() => {
+  return sortedAchievements.value.filter((a) => a.unlockedAt).length
+})
+
+const totalCount = computed(() => {
+  return sortedAchievements.value.length
+})
+
+const totalPoints = computed(() => {
+  return sortedAchievements.value.filter((a) => a.unlockedAt).reduce((sum, a) => sum + a.points, 0)
+})
+
+const progressPercentage = computed(() => {
+  if (totalCount.value === 0) return 0
+  return (unlockedCount.value / totalCount.value) * 100
+})
+
+async function refetchAchievements() {
+  await Promise.all([refetchAll(), refetchUser()])
+}
+
+onMounted(async () => {
+  await refetchAchievements()
+})
+</script>
+
 <template>
   <div class="user-achievements">
     <div class="achievements-header">
@@ -68,123 +173,6 @@
     </div>
   </div>
 </template>
-
-<script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import { useQuery } from '@tanstack/vue-query'
-import { achievementsApi } from '@/services/api'
-import { useAuthStore } from '@/stores/auth'
-import AchievementCard from './AchievementCard.vue'
-
-const authStore = useAuthStore()
-
-// Fetch all achievements
-const { 
-  data: allAchievements, 
-  isLoading: isLoadingAll,
-  error: errorAll,
-  refetch: refetchAll
-} = useQuery({
-  queryKey: ['achievements'],
-  queryFn: achievementsApi.getAchievements,
-})
-
-// Fetch user achievements (only if authenticated)
-const { 
-  data: userAchievements, 
-  isLoading: isLoadingUser,
-  error: errorUser,
-  refetch: refetchUser
-} = useQuery({
-  queryKey: ['userAchievements', authStore.user?.id],
-  queryFn: async () => {
-    if (!authStore.user?.id) return []
-    try {
-      return await achievementsApi.getUserAchievements()
-    } catch (error) {
-      console.error('Failed to fetch user achievements:', error)
-      return []
-    }
-  },
-  enabled: false,
-  retry: false,
-})
-
-// Computed properties
-const isLoading = computed(() => isLoadingAll.value || isLoadingUser.value)
-const error = computed(() => errorAll.value || errorUser.value)
-
-// Merge user achievements with all achievements
-const sortedAchievements = computed(() => {
-  if (!allAchievements.value) return []
-  
-  const achievements = allAchievements.value.map(achievement => {
-    const userAchievement = userAchievements.value?.find(
-      ua => ua.id === achievement.id
-    )
-    
-    return {
-      ...achievement,
-      progress: userAchievement?.progress || 0,
-      unlockedAt: userAchievement?.unlockedAt || null
-    }
-  })
-
-  // Sort: unlocked first (by unlock date desc), then by progress desc, then by points asc
-  return achievements.sort((a, b) => {
-    if (a.unlockedAt && b.unlockedAt) {
-      return new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime()
-    }
-    if (a.unlockedAt) return -1
-    if (b.unlockedAt) return 1
-    
-    const aProgress = (a.progress / a.condition) * 100
-    const bProgress = (b.progress / b.condition) * 100
-    
-    if (aProgress !== bProgress) {
-      return bProgress - aProgress
-    }
-    
-    return a.points - b.points
-  })
-})
-
-const recentlyUnlocked = computed(() => {
-  return sortedAchievements.value
-    .filter(a => a.unlockedAt)
-    .slice(0, 3)
-})
-
-const unlockedCount = computed(() => {
-  return sortedAchievements.value.filter(a => a.unlockedAt).length
-})
-
-const totalCount = computed(() => {
-  return sortedAchievements.value.length
-})
-
-const totalPoints = computed(() => {
-  return sortedAchievements.value
-    .filter(a => a.unlockedAt)
-    .reduce((sum, a) => sum + a.points, 0)
-})
-
-const progressPercentage = computed(() => {
-  if (totalCount.value === 0) return 0
-  return (unlockedCount.value / totalCount.value) * 100
-})
-
-// Functions
-
-async function refetchAchievements() {
-  await Promise.all([refetchAll(), refetchUser()])
-}
-
-// Refetch data when component mounts
-onMounted(async () => {
-  await refetchAchievements()
-})
-</script>
 
 <style scoped>
 .user-achievements {
@@ -267,7 +255,8 @@ onMounted(async () => {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
-.loading, .error {
+.loading,
+.error {
   text-align: center;
   padding: 3rem;
   color: rgba(255, 255, 255, 0.8);
@@ -284,7 +273,9 @@ onMounted(async () => {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .retry-btn {
@@ -327,22 +318,21 @@ onMounted(async () => {
   gap: 1.5rem;
 }
 
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .user-achievements {
     padding: 0.5rem;
   }
-  
+
   .achievements-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
-  
+
   .achievement-card {
     padding: 1rem;
   }
-  
+
   .section-title {
     font-size: 1.3rem;
   }
