@@ -39,6 +39,7 @@ This is a full-stack monorepo containing:
    ```bash
    cd snailke-api
    npm install
+   mkdir tmp && node ace migration:run && node ace db:seed
 
    cd ../snailke-web
    npm install
